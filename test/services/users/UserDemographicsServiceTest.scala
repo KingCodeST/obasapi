@@ -37,6 +37,6 @@ class UserDemographicsServiceTest extends FunSuite{
     Await.result(roachService.roach.deleteEntity(entity), 2 minutes)
     val result = Await.result(roachService.roach.getEntity(entity.userId), 2 minutes)
     assert(result.isEmpty)
-
   }
+
 }
