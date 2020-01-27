@@ -2,6 +2,7 @@ package services.login.Impl
 
 import com.typesafe.config.ConfigFactory
 import domain.login.{ChangePassword, Login, LoginToken, Register}
+import domain.mail.{EmailMessage, MessageResponse}
 import domain.security.ResetToken
 import domain.users.{User, UserPassword, UserRole}
 import play.api.{Logger, Logging}
@@ -25,6 +26,18 @@ class LoginServiceImpl extends LoginService with Logging {
     UserService.apply.isUserAvailable(user.email)
   }
 
+  private def getResetToken(isRegistered: Boolean, resetToken: ResetToken): Future[Option[ResetToken]] = {
+    if (isRegistered) Future.successful(None)
+    else {
+      ResetTokenService.apply.saveEntity(resetToken)
+    }
+  }
+
+  private def sendResetPasswordMail(resetToken: Option[ResetToken], resetMessage: EmailMessage): Future[MessageResponse] = {
+    if (resetToken.isDefined) MailService.sendGrid.sendMail(resetMessage)
+    else Future.successful(MessageResponse(500, Map(), ""))
+  }
+
   override def forgotPassword(register: Register): Future[Option[ResetToken]] = {
     val resetURL = HelperUtil.getSiteURL + "/login/passwordreset"
     val user = User(email = register.email)
@@ -33,12 +46,12 @@ class LoginServiceImpl extends LoginService with Logging {
     val resetMessage = EmailCreationMessageService.apply.forgetPasswordLinkMessage(user, resetKey, resetURL)
     logger.info("Forgot Password Message: "+ resetMessage)
     for {
-      saveToken <- ResetTokenService.apply.saveEntity(resetToken) if saveToken.isDefined
-      _ <- MailService.sendGrid.sendMail(resetMessage)
-    } yield saveToken
+      isRegistered <- isUserRegistered(register) if isRegistered
+      resetToken <- getResetToken(isRegistered, resetToken)
+      _ <- sendResetPasswordMail(resetToken, resetMessage)
+    } yield resetToken
   }
 
-  //TODO: Email doesn't send!
   override def register(register: Register): Future[Boolean] = {
     val tempPass = AuthenticationService.apply.generateRandomPassword() // generated password
     val hashedTempPass = AuthenticationService.apply.getHashedPassword(tempPass) // hash passwrd
@@ -59,18 +72,14 @@ class LoginServiceImpl extends LoginService with Logging {
   }
 
   private def authenticateUser(password: String, actualPass: String): Future[Boolean] = {
-    Future.successful(AuthenticationService.apply
-      .checkPassword(password, actualPass)) // compare
+    Future.successful(AuthenticationService.apply.checkPassword(password, actualPass)) // compare
   }
 
   private def saveLoginToken(email: String, token: String): Future[Option[LoginToken]] = {
     val loginToken = LoginToken(email, token)
     for {
       _ <- LoginTokenService.apply.saveEntity(loginToken)
-    } yield {
-      logger.info("LoginToken: " + loginToken)
-      Some(loginToken)
-    }
+    } yield Some(loginToken)
   }
 
   private def getSecureChangePasswordObj(changePassword: ChangePassword, userPassword: UserPassword, newHashedPassword: String): ChangePassword = {
@@ -85,14 +94,12 @@ class LoginServiceImpl extends LoginService with Logging {
   override def changePassword(changePassword: ChangePassword): Future[Option[LoginToken]] = {
     val newHashedPassword = AuthenticationService.apply.getHashedPassword(changePassword.newPassword)
     for {
-      userPassword <- UserPasswordService.apply.getEntity(changePassword.email)
+      userPassword <- UserPasswordService.apply.getEntity(changePassword.email) //if userPassword.isDefined
       checkPassword <- authenticateUser(changePassword.oldPassword, userPassword.get.password) if checkPassword
       _ <- UserPasswordService.apply.saveEntity(buildUpdatedUserPassword(changePassword, newHashedPassword))
       _ <- UserChangePasswordService.apply.saveEntity(getSecureChangePasswordObj(changePassword, userPassword.get, newHashedPassword))
      loginToken <- getLoginToken(Login(changePassword.email, changePassword.newPassword))
-    } yield {
-      loginToken
-    }
+    } yield loginToken
 
   }
 
@@ -109,7 +116,6 @@ class LoginServiceImpl extends LoginService with Logging {
     }
   }
 
-  //TODO: Test when sendgrid allows
   override def resetPasswordRequest(resetKey: String): Future[Boolean] = {
     for {
       resetToken <- ResetTokenService.apply.getEntity(resetKey) if resetToken.isDefined && resetToken.get.status.equals(APPKeys.ACTIVE)
@@ -125,10 +131,9 @@ class LoginServiceImpl extends LoginService with Logging {
     val userPassword = UserPassword(user.get.email, newHashedPassword)
     val emailMessage = EmailCreationMessageService.apply.passwordResetMessage(user.get, generatedPassword)
     for {
-      saveUserPassword <- UserPasswordService.apply.saveEntity(userPassword)
+      _ <- UserPasswordService.apply.saveEntity(userPassword)
       emailResponse <- MailService.sendGrid.sendMail(emailMessage)
     } yield {
-      logger.info("Reset Account Message: " + emailMessage)
       emailResponse.statusCode == 202
     }
   }

@@ -36,13 +36,15 @@ class ApplicationStatusServiceImpl extends ApplicationStatusService {
   override def getLatestForApplication(applicationId: String): Future[Option[ApplicationStatus]] =
     ApplicationStatusRepository.roach.getLatestForApplication(applicationId)
 
-  def getIncompleteStatus(statuses: Seq[GenericStatus]): Future[Seq[GenericStatus]] = {
-    Future.successful(statuses.filter(status => status.name.trim.equalsIgnoreCase(APPKeys.REJECTED) && status.name.trim.equalsIgnoreCase(APPKeys.APPROVED)))
+  def getCompleteStatus(statuses: Seq[GenericStatus]): Future[Seq[GenericStatus]] = {
+    Future.successful(
+      statuses.filter(status => status.name.trim.equalsIgnoreCase(APPKeys.REJECTED) || status.name.trim.equalsIgnoreCase(APPKeys.APPROVED) || status.name.trim.equalsIgnoreCase(APPKeys.COMPLETE))
+    )
   }
 
-  def checkApplicationStatus(applicationStatus: Option[ApplicationStatus], incompleteStatuses: Seq[GenericStatus]) = {
+  def checkApplicationStatus(applicationStatus: Option[ApplicationStatus], completeStatuses: Seq[GenericStatus]): Future[Boolean] = {
     applicationStatus match {
-      case Some(value) => Future.successful(incompleteStatuses.filter(s => s.id == value.statusId).length > 0)
+      case Some(value) => Future.successful(completeStatuses.filter(s => s.id == value.statusId).length > 0)
       case None => Future.successful(true)
     }
   }
@@ -51,8 +53,8 @@ class ApplicationStatusServiceImpl extends ApplicationStatusService {
     for {
       applicationStatus <- getLatestForApplication(applicationId) if applicationStatus.isDefined
       statuses <- GenericStatusService.roach.getEntities
-      incompleteStatuses <- getIncompleteStatus(statuses)
-      incomplete <- checkApplicationStatus(applicationStatus, incompleteStatuses)
+      completeStatuses <- getCompleteStatus(statuses)
+      incomplete <- checkApplicationStatus(applicationStatus, completeStatuses)
     } yield {
       incomplete
     }

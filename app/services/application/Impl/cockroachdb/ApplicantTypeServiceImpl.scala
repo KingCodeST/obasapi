@@ -3,7 +3,7 @@ package services.application.Impl.cockroachdb
 import domain.application.ApplicantType
 import repository.application.ApplicantTypeRepository
 import services.application.ApplicantTypeService
-import util.GenericLookupData
+import util.{APPKeys, GenericLookupData}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -29,13 +29,21 @@ class ApplicantTypeServiceImpl extends ApplicantTypeService{
     ApplicantTypeRepository.roach.createTable
   }
 
-  override def createInitialData: Future[Seq[Boolean]] = {
-    Future.sequence(GenericLookupData.GENERIC_APPLICANT.map(applicantType => {
+  def checkIfSaved(result: Option[ApplicantType], applicantType: String): Future[Boolean] = {
+    if (result.isDefined) Future.successful(result.isDefined)
+    else {
       val a = ApplicantType.build(applicantType)
       saveEntity(a).map(s => s.isDefined)
-    }))
+    }
   }
 
-  override def getMatricApplicantType: Future[Option[ApplicantType]] = ApplicantTypeRepository.roach.getMatricApplicantType
+  override def createInitialData: Future[Seq[Boolean]] = Future.sequence(GenericLookupData.GENERIC_APPLICANT.map(applicantType => {
+    for {
+      result <- ApplicantTypeRepository.roach.getEntityByName(applicantType)
+      isSaved <- checkIfSaved(result, applicantType)
+    } yield isSaved
+  }))
+
+  override def getMatricApplicantType: Future[Option[ApplicantType]] = ApplicantTypeRepository.roach.getEntityByName(APPKeys.MATRIC_APPLICANT_TYPE)
 }
 

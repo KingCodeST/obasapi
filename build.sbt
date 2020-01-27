@@ -86,6 +86,8 @@ libraryDependencies += "org.jsoup" % "jsoup" % "1.11.3"
 
 libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.9"
 libraryDependencies += "org.apache.commons" % "commons-email" % "1.5"
+libraryDependencies += "org.apache.poi" % "poi" % "4.1.1"
+
 libraryDependencies += "commons-io" % "commons-io" % "2.6"
 libraryDependencies += "com.squareup.okhttp3" % "okhttp" % "3.12.1"
 

@@ -9,6 +9,7 @@ import scala.concurrent.Future
 trait GenericStatusService extends CrudService[GenericStatus]{
   def createInitialData: Future[Seq[Boolean]]
   def getIncompleteStatus: Future[Option[GenericStatus]]
+  def getCompleteStatus: Future[Option[GenericStatus]]
 }
 
 object GenericStatusService{

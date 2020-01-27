@@ -11,7 +11,8 @@ import util.connections.PgDBConnection.driver
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class BudgetTables(tag: Tag) extends Table[Budget](tag, _tableName = "awards") {
+class
+BudgetTables(tag: Tag) extends Table[Budget](tag, _tableName = "awards") {
 
   def id: Rep[String] = column[String]("id", O.PrimaryKey)
 

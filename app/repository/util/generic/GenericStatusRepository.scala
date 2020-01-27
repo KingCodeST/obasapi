@@ -7,7 +7,7 @@ import repository.util.generic.impl.cockroach.GenericStatusRepositoryImpl
 import scala.concurrent.Future
 
 trait GenericStatusRepository extends Repository[GenericStatus]{
-  def getIncompleteStatus: Future[Option[GenericStatus]]
+  def getEntityByName(name: String): Future[Option[GenericStatus]]
 }
 object GenericStatusRepository{
   def roach: GenericStatusRepository = new GenericStatusRepositoryImpl()
