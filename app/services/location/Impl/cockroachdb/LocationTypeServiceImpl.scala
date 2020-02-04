@@ -4,6 +4,7 @@ import domain.location.LocationType
 import repository.location.LocationTypeRepository
 import services.location.LocationTypeService
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class LocationTypeServiceImpl extends LocationTypeService {
@@ -12,7 +13,7 @@ class LocationTypeServiceImpl extends LocationTypeService {
     LocationTypeRepository.roach.saveEntity(entity)
 
   override def getEntities: Future[Seq[LocationType]] =
-    LocationTypeRepository.roach.getEntities
+    LocationTypeRepository.roach.getEntities.map(_.sorted(LocationType.orderByName))
 
   override def getEntity(locationTypeId: String): Future[Option[LocationType]] =
     LocationTypeRepository.roach.getEntity(locationTypeId)

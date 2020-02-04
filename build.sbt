@@ -46,6 +46,7 @@ val circeVersion = "0.12.3"
 val TwitterChillVersion = "0.9.4"
 val MoshiVersion = "1.8.0"
 val softwaremillSttpVersion = "1.7.2"
+val ZioVersion = "1.0.0-RC17"
 
 
 
@@ -90,6 +91,11 @@ libraryDependencies += "org.apache.poi" % "poi" % "4.1.1"
 
 libraryDependencies += "commons-io" % "commons-io" % "2.6"
 libraryDependencies += "com.squareup.okhttp3" % "okhttp" % "3.12.1"
+
+libraryDependencies += "dev.zio" %% "zio" % ZioVersion
+libraryDependencies += "dev.zio" %% "zio-streams" % ZioVersion
+libraryDependencies += "dev.zio" %% "zio-test" % ZioVersion % Test
+
 
 
 libraryDependencies ++= Seq(

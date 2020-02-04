@@ -7,9 +7,9 @@ import repository.application.impl.cockcroachdb.ApplicantTypeRepositoryImpl
 import scala.concurrent.Future
 
 trait ApplicantTypeRepository extends Repository [ApplicantType]{
-  def getMatricApplicantType: Future[Option[ApplicantType]]
+  def getEntityByName(name: String): Future[Option[ApplicantType]]
 }
-object ApplicantTypeRepository{
 
+object ApplicantTypeRepository{
   def roach: ApplicantTypeRepository= new ApplicantTypeRepositoryImpl()
 }

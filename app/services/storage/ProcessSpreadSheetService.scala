@@ -19,6 +19,7 @@ object ProcessSpreadSheetService {
       val sheet = wb.getSheetAt(0)
       val rows = sheet.getPhysicalNumberOfRows
       sheet.getRow(0).getCell(0).toString()
+      sheet.getRow(0).getCell(1).toString()
       Future.successful(true)
     }
   }

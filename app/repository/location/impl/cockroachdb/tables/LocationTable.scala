@@ -9,7 +9,6 @@ import util.connections.PgDBConnection.driver
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
 class LocationTable(tag: Tag) extends Table[Location](tag, "location") {
   def locationId: Rep[String] = column[String]("location_id", O.PrimaryKey)
 
@@ -45,7 +44,6 @@ object LocationTable extends TableQuery(new LocationTable(_)) {
 
   def getEntitiesForParent(locationParentId: String): Future[Seq[Location]] = {
     db.run(this.filter(_.locationParentId === locationParentId).result)
-      .map(_.sorted(Location.orderByName))
   }
 
   def getEntities: Future[Seq[Location]] = {
