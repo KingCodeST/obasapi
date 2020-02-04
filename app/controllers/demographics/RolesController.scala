@@ -44,13 +44,15 @@ class RolesController @Inject()
   def update: Action[JsValue] = Action.async(parse.json) {
     implicit request: Request[JsValue] =>
       val entity = Json.fromJson[DomainObject](request.body).asEither
+      logger.info("Update request with body: " + entity)
+      print("we are in the update role"+entity+"request>>>"+request)
       entity match {
         case Right(value) =>
-          val response: Future[Option[Roles]] = for {
+          val response: Future[Option[DomainObject]] = for {
             _ <- loginService.checkLoginStatus(request)
-            results: Option[Roles] <- domainService.saveEntity(value)
+            results: Option[DomainObject] <- domainService.saveEntity(value)
           } yield results
-          api.requestResponse[Option[Roles]](response, className)
+          api.requestResponse[Option[DomainObject]](response, className)
         case Left(error) => api.errorResponse(error, className)
       }
   }
