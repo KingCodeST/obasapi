@@ -70,6 +70,15 @@ class GenericStatusController @Inject()
       api.requestResponse[Option[DomainObject]](response, className)
   }
 
+  def getCompleteStatus: Action[AnyContent] = Action.async {
+    implicit request: Request[AnyContent] =>
+      logger.info("Retrieve complete status")
+      val response: Future[Option[DomainObject]] = for {
+        results <- domainService.getCompleteStatus
+      } yield results
+      api.requestResponse[Option[DomainObject]](response, className)
+  }
+
   def gatAll: Action[AnyContent] = Action.async {
     implicit request: Request[AnyContent] =>
       logger.info("Retrieve all requested")

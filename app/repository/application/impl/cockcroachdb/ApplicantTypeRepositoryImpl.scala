@@ -29,5 +29,6 @@ class ApplicantTypeRepositoryImpl extends ApplicantTypeRepository{
     Future.successful(ApplicantTypeTable.createTable)
   }
 
-  override def getMatricApplicantType: Future[Option[ApplicantType]] = ApplicantTypeTable.getMatricApplicantType
+  override def getEntityByName(name: String): Future[Option[ApplicantType]] =
+    ApplicantTypeTable.getEntityByName(name)
 }

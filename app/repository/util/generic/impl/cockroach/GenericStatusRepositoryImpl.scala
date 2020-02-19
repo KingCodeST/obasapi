@@ -29,7 +29,7 @@ class GenericStatusRepositoryImpl extends GenericStatusRepository{
     Future.successful(GenericStatusTable.createTable)
   }
 
-  override def getIncompleteStatus: Future[Option[GenericStatus]] =
-    GenericStatusTable.getEntityByName(APPKeys.INCOMPLETE)
+  override def getEntityByName(name: String): Future[Option[GenericStatus]] =
+    GenericStatusTable.getEntityByName(name)
 }
 

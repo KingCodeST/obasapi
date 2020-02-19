@@ -34,10 +34,6 @@ object ApplicantTypeTable extends TableQuery(new ApplicantTypeTable(_)) {
     )
   }
 
-  def getMatricApplicantType: Future[Option[ApplicantType]] = {
-    db.run(this.filter(_.name.trim === APPKeys.MATRIC_APPLICANT_TYPE).result).map(_.headOption)
-  }
-
   def getEntities: Future[Seq[ApplicantType]] = {
     db.run(ApplicantTypeTable.result)
   }
@@ -50,6 +46,10 @@ object ApplicantTypeTable extends TableQuery(new ApplicantTypeTable(_)) {
     db.run(
       ApplicantTypeTable.schema.createIfNotExists
     ).isCompleted
+  }
+
+  def getEntityByName(name: String): Future[Option[ApplicantType]] = {
+    db.run(this.filter(_.name.trim === name.trim).result).map(_.headOption)
   }
 
 }

@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 import domain.util.generic.GenericStatus
 import repository.util.generic.GenericStatusRepository
 import services.util.generic.GenericStatusService
-import util.GenericLookupData
+import util.{APPKeys, GenericLookupData}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -32,14 +32,25 @@ class GenericStatusServiceImpl extends GenericStatusService{
     GenericStatusRepository.roach.createTable
   }
 
-  override def createInitialData: Future[Seq[Boolean]] = {
-    Future.sequence(GenericLookupData.GENERICSTATUS.map(status => {
+  def checkIfSaved(result: Option[GenericStatus], status: String): Future[Boolean] = {
+    if (result.isDefined) Future.successful(result.isDefined)
+    else {
       val gs = GenericStatus.build(status)
       saveEntity(gs).map(s => s.isDefined)
-    }))
+    }
   }
 
+  override def createInitialData: Future[Seq[Boolean]] = Future.sequence(GenericLookupData.GENERICSTATUS.map(status => {
+    for {
+      result <- GenericStatusRepository.roach.getEntityByName(status)
+      isSaved <- checkIfSaved(result, status)
+    } yield isSaved
+  }))
+
   override def getIncompleteStatus: Future[Option[GenericStatus]] =
-    GenericStatusRepository.roach.getIncompleteStatus
+    GenericStatusRepository.roach.getEntityByName(APPKeys.INCOMPLETE)
+
+  override def getCompleteStatus: Future[Option[GenericStatus]] =
+    GenericStatusRepository.roach.getEntityByName(APPKeys.COMPLETE)
 }
 

@@ -10,4 +10,6 @@ case class LocationType(
 object LocationType{
   implicit val locationTypeFmt = Json.format[LocationType]
 
+  val orderByName: Ordering[LocationType] = Ordering.by(locationType => locationType.name)
+
 }
